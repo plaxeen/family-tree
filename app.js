@@ -8,40 +8,16 @@ function render() {
     const node = template.content.cloneNode(true);
     const card = node.querySelector(".person-card");
     card.setAttribute("data-id", person.id || index);
-    const nameEl = card.querySelector(".name");
-    const relationEl = card.querySelector(".relation");
-    const socialEl = card.querySelector(".social");
-    const parentEl = card.querySelector(".parent");
+    card.querySelector(".name").innerText = person.name;
+    card.querySelector(".relation").value = person.relation;
+    card.querySelector(".social").value = person.social;
+    card.querySelector(".parent").value = person.parentId || "";
 
-    nameEl.innerText = person.name;
-    relationEl.value = person.relation;
-    socialEl.value = person.social;
-    parentEl.value = person.parentId || "";
-
-    nameEl.oninput = (e) => {
-      const sel = window.getSelection();
-      const range = sel.getRangeAt(0);
-      const pos = range.startOffset;
-      people[index].name = e.target.innerText;
-      save(false); // не перерендериваем
-      // вернем фокус и позицию
-      render();
-      const newCard = document.querySelector(`[data-id='${person.id}']`);
-      const newNameEl = newCard.querySelector(".name");
-      newNameEl.focus();
-      const newRange = document.createRange();
-      newRange.setStart(newNameEl.firstChild || newNameEl, Math.min(pos, newNameEl.textContent.length));
-      newRange.collapse(true);
-      const newSel = window.getSelection();
-      newSel.removeAllRanges();
-      newSel.addRange(newRange);
-    };
-
-    relationEl.oninput = (e) => update(index, "relation", e.target.value);
-    socialEl.oninput = (e) => update(index, "social", e.target.value);
-    parentEl.oninput = (e) => update(index, "parentId", e.target.value);
+    card.querySelector(".name").oninput = (e) => update(index, "name", e.target.innerText);
+    card.querySelector(".relation").oninput = (e) => update(index, "relation", e.target.value);
+    card.querySelector(".social").oninput = (e) => update(index, "social", e.target.value);
+    card.querySelector(".parent").oninput = (e) => update(index, "parentId", e.target.value);
     card.querySelector(".delete").onclick = () => remove(index);
-
     const search = card.querySelector(".search-social");
     search.href = `https://www.google.com/search?q=${encodeURIComponent(person.name + ' site:vk.com OR site:facebook.com')}`;
 
@@ -77,9 +53,9 @@ function update(index, key, value) {
   save();
 }
 
-function save(shouldRender = true) {
+function save() {
   localStorage.setItem("familyTree", JSON.stringify(people));
-  if (shouldRender) render();
+  render();
 }
 
 function addPerson() {
