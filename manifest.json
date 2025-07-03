@@ -1,0 +1,9 @@
+{
+  "name": "Семейное древо",
+  "short_name": "FamilyTree",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#343a40",
+  "icons": []
+}

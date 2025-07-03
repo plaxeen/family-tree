@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Генеалогическое древо</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Мое семейное древо</h1>
+    <input type="search" id="search" placeholder="Поиск по имени...">
+    <button onclick="addPerson()">+ Добавить</button>
+    <button onclick="exportData()">💾 Экспорт</button>
+    <input type="file" id="importFile" onchange="importData(event)">
+    <label for="importFile">📁 Импорт</label>
+    <button onclick="exportImage()">🖼 PNG</button>
+  </header>
+
+  <main id="tree-container">
+    <svg id="connections"></svg>
+  </main>
+
+  <template id="person-card-template">
+    <div class="person-card">
+      <h3 contenteditable="true" class="name"></h3>
+      <input type="text" class="relation" placeholder="Кем приходится...">
+      <input type="url" class="social" placeholder="Ссылка на соцсеть">
+      <input type="text" class="parent" placeholder="ID родителя">
+      <a class="search-social" target="_blank">🔍</a>
+      <button class="delete">🗑</button>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
