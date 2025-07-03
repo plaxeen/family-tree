@@ -8,70 +8,117 @@ function render() {
     const node = template.content.cloneNode(true);
     const card = node.querySelector(".person-card");
     card.setAttribute("data-id", person.id || index);
-    card.querySelector(".name").innerText = person.name;
-    card.querySelector(".relation").value = person.relation;
-    card.querySelector(".social").value = person.social;
-    card.querySelector(".parent").value = person.parentId || "";
+    card.style.position = "absolute";
 
-    card.querySelector(".name").oninput = (e) => update(index, "name", e.target.innerText);
-    card.querySelector(".relation").oninput = (e) => update(index, "relation", e.target.value);
-    card.querySelector(".social").oninput = (e) => update(index, "social", e.target.value);
-    card.querySelector(".parent").oninput = (e) => update(index, "parentId", e.target.value);
-    card.querySelector(".delete").onclick = () => remove(index);
+    const nameEl = card.querySelector(".name");
+    const relationEl = card.querySelector(".relation");
+    const socialEl = card.querySelector(".social");
+    const parentEl = card.querySelector(".parent");
+
+    nameEl.innerText = person.name;
+    relationEl.value = person.relation;
+    socialEl.value = person.social;
+    parentEl.value = person.parentId || "";
+
+    if (!person.x) person.x = 100 + index * 280;
+    if (!person.y) person.y = 100;
+    card.style.left = person.x + "px";
+    card.style.top = person.y + "px";
+
+    card.setAttribute("draggable", true);
+    card.ondragstart = (e) => e.dataTransfer.setData("text/plain", index);
+    card.ondragend = (e) => {
+      const x = e.pageX - 125;
+      const y = e.pageY - 30;
+      people[index].x = x;
+      people[index].y = y;
+      save(false);
+      updatePositions();
+    };
+
+    nameEl.oninput = () => {
+      people[index].name = nameEl.innerText;
+      save(false);
+    };
+    relationEl.oninput = () => {
+      people[index].relation = relationEl.value;
+      save(false);
+    };
+    socialEl.oninput = () => {
+      people[index].social = socialEl.value;
+      save(false);
+    };
+    parentEl.oninput = () => {
+      people[index].parentId = parentEl.value;
+      save(false);
+    };
+
+    card.querySelector(".delete").onclick = () => {
+      people.splice(index, 1);
+      save();
+    };
+
     const search = card.querySelector(".search-social");
     search.href = `https://www.google.com/search?q=${encodeURIComponent(person.name + ' site:vk.com OR site:facebook.com')}`;
 
     container.appendChild(card);
+  });
+
+  drawConnections();
+}
+
+function updatePositions() {
+  people.forEach((person, index) => {
+    const card = document.querySelector(`[data-id='${person.id}']`);
+    if (card) {
+      card.style.left = person.x + "px";
+      card.style.top = person.y + "px";
+    }
   });
   drawConnections();
 }
 
 function drawConnections() {
   const svg = document.querySelector("#connections");
+  svg.innerHTML = "";
   people.forEach(person => {
     if (!person.parentId) return;
     const childEl = document.querySelector(`[data-id='${person.id}']`);
     const parentEl = document.querySelector(`[data-id='${person.parentId}']`);
     if (!childEl || !parentEl) return;
+
     const cRect = childEl.getBoundingClientRect();
     const pRect = parentEl.getBoundingClientRect();
-    const x1 = pRect.left + pRect.width / 2;
+    const x1 = pRect.left + pRect.width / 2 + window.scrollX;
     const y1 = pRect.bottom + window.scrollY;
-    const x2 = cRect.left + cRect.width / 2;
+    const x2 = cRect.left + cRect.width / 2 + window.scrollX;
     const y2 = cRect.top + window.scrollY;
+
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("x1", x1); line.setAttribute("y1", y1);
-    line.setAttribute("x2", x2); line.setAttribute("y2", y2);
+    line.setAttribute("x1", x1);
+    line.setAttribute("y1", y1);
+    line.setAttribute("x2", x2);
+    line.setAttribute("y2", y2);
     line.setAttribute("stroke", "black");
     line.setAttribute("stroke-width", "2");
     svg.appendChild(line);
   });
 }
 
-function update(index, key, value) {
-  people[index][key] = value;
-  save();
-}
-
-function save() {
+function save(redraw = true) {
   localStorage.setItem("familyTree", JSON.stringify(people));
-  render();
+  if (redraw) render();
 }
 
 function addPerson() {
-  people.push({ id: Date.now(), name: "Родственник", relation: "", social: "", parentId: "" });
-  save();
-}
-
-function remove(index) {
-  people.splice(index, 1);
+  people.push({ id: Date.now(), name: "Родственник", relation: "", social: "", parentId: "", x: 100, y: 100 });
   save();
 }
 
 document.getElementById("search").oninput = () => {
   const search = document.getElementById("search").value.toLowerCase();
-  people = people.map(p => ({...p, visible: !search || p.name.toLowerCase().includes(search) }));
-  render();
+  people.forEach(p => p.visible = !search || p.name.toLowerCase().includes(search));
+  save();
 };
 
 function exportData() {
